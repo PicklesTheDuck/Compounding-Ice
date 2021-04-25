@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
-import "./ERC20.sol";
-import "./SafeMath.sol";
-import "./IERC20.sol";
-import "./Ownable.sol";
+import "./lib/ERC20.sol";
+import "./lib/SafeMath.sol";
+import "./lib/IERC20.sol";
+import "./lib/Ownable.sol";
 
 
 interface ISorbettiere {
