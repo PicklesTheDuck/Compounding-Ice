@@ -14,15 +14,14 @@ interface ISorbettiere {
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 }
+contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
 
-contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
-  
   using SafeMath for uint;
 
   IERC20 public ICE;
   ISorbettiere public stakingContract;
-  
-  uint public PID;  
+
+  uint public PID;
   uint public totalDeposits;
 
   address public strategist;                  // dev
@@ -39,13 +38,13 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
 
   constructor(
     address _strategist,
-    address _ICE, 
+    address _ICE,
     address _stakingContract,
     uint _pid
   ) {
     strategist = _strategist;
     ICE = IERC20(_ICE);
-    
+
     stakingContract = ISorbettiere(_stakingContract);
     IERC20(_ICE).approve(_stakingContract, uint(-1));
     PID = _pid;
@@ -59,21 +58,10 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
     _deposit(amount);
   }
 
-  /**
-   * @notice Deposit ICE to receive Compounding Ice🍧 reciept tokens
-   * @param amount Amount of ICE to deposit
-   * @param deadline The time at which to expire the signature
-   * @param v The recovery byte of the signature
-   * @param r Half of the ECDSA signature pair
-   * @param s Half of the ECDSA signature pair
-   */
-  function depositWithPermit(uint amount, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-    ICE.permit(msg.sender, address(this), amount, deadline, v, r, s);
-    _deposit(amount);
-  }
+
 
   function _deposit(uint amount) internal {
-    require(totalDeposits >= totalSupply, "deposit failed");
+    require(totalDeposits >= totalSupply(), "deposit failed");
     require(ICE.transferFrom(msg.sender, address(this), amount), "transferFrom failed");
     _stakeICE(amount);
     _mint(msg.sender, getSharesPerDepositTokens(amount));
@@ -105,10 +93,10 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
    * @return amount of Compounding Ice🍧 reciept tokens
    */
   function getSharesPerDepositTokens(uint amount) public view returns (uint) {
-    if (totalSupply.mul(totalDeposits) == 0) {
+    if (totalSupply().mul(totalDeposits) == 0) {
       return amount;
     }
-    return amount.mul(totalSupply).div(totalDeposits);
+    return amount.mul(totalSupply()).div(totalDeposits);
   }
 
   /**
@@ -117,10 +105,10 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
    * @return ICE
    */
   function getDepositTokensPerShares(uint amount) public view returns (uint) {
-    if (totalSupply.mul(totalDeposits) == 0) {
+    if (totalSupply().mul(totalDeposits) == 0) {
       return 0;
     }
-    return amount.mul(totalDeposits).div(totalSupply);
+    return amount.mul(totalDeposits).div(totalSupply());
   }
 
   /**
@@ -137,7 +125,7 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
   /**
    * @notice Reinvest rewards from staking contract to ICE
    */
-  function reinvest() external {
+  function reinvest() public {
     uint unclaimedRewards = checkReward();
     // harvest earnings
     stakingContract.deposit(PID, 0);
@@ -150,7 +138,7 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE🍧'), Ownable {
     uint iceRewardAmount = unclaimedRewards.sub(performanceFee);
     _stakeICE(iceRewardAmount);
     totalDeposits = totalDeposits.add(iceRewardAmount);
-    emit Reinvest(totalDeposits, totalSupply);
+    emit Reinvest(totalDeposits, totalSupply());
   }
 
   /**
