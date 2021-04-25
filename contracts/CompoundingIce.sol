@@ -1,3 +1,5 @@
+// Mainnet Testing
+
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
@@ -46,7 +48,7 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
     ICE = IERC20(_ICE);
 
     stakingContract = ISorbettiere(_stakingContract);
-    IERC20(_ICE).approve(_stakingContract, uint(-1));
+    IERC20(_ICE).approve(_stakingContract, uint(-1)); 
     PID = _pid;
   }
 
@@ -66,7 +68,12 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
     _stakeICE(amount);
     _mint(msg.sender, getSharesPerDepositTokens(amount));
     totalDeposits = totalDeposits.add(amount);
-    if (ICE.balanceOf(address(this)) >= MIN_TOKENS_TO_REINVEST) {
+    
+    // Correction: stakingContract.pendingIce(uint256 0, address address(this))
+    // Minor mistake, balanceOf in this case would be checking the 
+    // contract while it's not holding any rewarded Ice, the flaw
+    // doesn't make a difference however.
+    if (ICE.balanceOf(address(this)) >= MIN_TOKENS_TO_REINVEST) { 
         reinvest();
     }
     emit Deposit(msg.sender, amount);
