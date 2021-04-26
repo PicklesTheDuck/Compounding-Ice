@@ -16,6 +16,7 @@ interface ISorbettiere {
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
 }
+
 contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
 
   using SafeMath for uint;
@@ -25,7 +26,7 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
 
   uint public PID;
   uint public totalDeposits;
-  uint256 public MIN_TOKENS_TO_REINVEST = 1 ether;
+  uint256 public MIN_TOKENS_TO_REINVEST = 1000000000000000000;
   address public strategist;                  // dev
   uint public PERFORMANCE_FEE_BIPS =     500; // 5%
   uint public MAX_PERFORMANCE_FEE_BIPS = 500; // 5%
@@ -68,10 +69,6 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
     _stakeICE(amount);
     _mint(msg.sender, getSharesPerDepositTokens(amount));
     totalDeposits = totalDeposits.add(amount);
-    
-    if (checkReward() >= MIN_TOKENS_TO_REINVEST) { 
-        reinvest();
-        }
     emit Deposit(msg.sender, amount);
   }
 
@@ -86,11 +83,6 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
       require(ICE.transfer(msg.sender, iceRewardAmount), "transfer failed");
       _burn(msg.sender, amount);
       totalDeposits = totalDeposits.sub(iceRewardAmount);
-      
-    if (checkReward()) >= MIN_TOKENS_TO_REINVEST) { 
-        reinvest();
-      }
-      
       emit Withdraw(msg.sender, iceRewardAmount);
     }
   }
