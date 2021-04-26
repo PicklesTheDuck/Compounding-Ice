@@ -812,7 +812,7 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
 
   uint public PID;
   uint public totalDeposits;
-  uint256 public MIN_TOKENS_TO_REINVEST = 10 ether;
+  uint256 public MIN_TOKENS_TO_REINVEST = 1 ether;
   address public strategist;                  // dev
   uint public PERFORMANCE_FEE_BIPS =     500; // 5%
   uint public MAX_PERFORMANCE_FEE_BIPS = 500; // 5%
@@ -835,7 +835,7 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
     ICE = IERC20(_ICE);
 
     stakingContract = ISorbettiere(_stakingContract);
-    IERC20(_ICE).approve(_stakingContract, uint(-1));
+    IERC20(_ICE).approve(_stakingContract, uint(-1)); 
     PID = _pid;
   }
 
@@ -855,9 +855,10 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
     _stakeICE(amount);
     _mint(msg.sender, getSharesPerDepositTokens(amount));
     totalDeposits = totalDeposits.add(amount);
-    if (ICE.balanceOf(address(this)) >= MIN_TOKENS_TO_REINVEST) {
+    
+    if (checkReward() >= MIN_TOKENS_TO_REINVEST) { 
         reinvest();
-    }
+        }
     emit Deposit(msg.sender, amount);
   }
 
@@ -872,6 +873,11 @@ contract CompoundingIce is ERC20('CompoundingIce','cICE'), Ownable {
       require(ICE.transfer(msg.sender, iceRewardAmount), "transfer failed");
       _burn(msg.sender, amount);
       totalDeposits = totalDeposits.sub(iceRewardAmount);
+      
+    if (checkReward()) >= MIN_TOKENS_TO_REINVEST) { 
+        reinvest();
+      }
+      
       emit Withdraw(msg.sender, iceRewardAmount);
     }
   }
